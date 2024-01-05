@@ -10,17 +10,24 @@ def get_market_data(market):
     """
     Esta función toma un mercado como argumento, hace una solicitud GET a la API de Buda para obtener los datos del ticker del mercado y devuelve la respuesta en formato JSON.
     """
-    response = requests.get(f'https://www.buda.com/api/v2/markets/{market}/ticker')
-    response.raise_for_status()
-    return response.json()
+    try:
+        response = requests.get(f'https://www.buda.com/api/v2/markets/{market}/ticker')
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        return {"error": str(e)}
 
 def calculate_spread(market_data):
     """
     Esta función toma los datos del mercado en formato JSON, extrae el precio de oferta más alto (`max_bid`) y el precio de demanda más bajo (`min_ask`), y calcula la diferencia (spread) entre ellos.
     """
-    bid = float(market_data['ticker']['max_bid'][0])
-    ask = float(market_data['ticker']['min_ask'][0])
-    return ask - bid
+    try:
+        bid = float(market_data['ticker']['max_bid'][0])
+        ask = float(market_data['ticker']['min_ask'][0])
+        return ask - bid
+    except (KeyError, TypeError):
+        return "Error: Invalid market data"
+
 
 @app.route('/markets/spread', methods=['GET'])
 def get_all_markets_spread():
